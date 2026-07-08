@@ -58,7 +58,8 @@ originalPkgdef: resolveEnv: {
 
     opam-installer = true;
     ocaml = true;
-  } // functionArgsFor originalPkgdef;
+  }
+  // functionArgsFor originalPkgdef;
 
   __functor =
     self: deps:
@@ -150,8 +151,7 @@ originalPkgdef: resolveEnv: {
         setFallbackDepVars = varsToShell (
           foldl recursiveUpdate { } (
             map (name: pkgVarsFor name (fallbackPackageVars name)) (
-              collectAllValuesFromList pkgdef.depends or [ ]
-              ++ collectAllValuesFromList pkgdef.depopts or [ ]
+              collectAllValuesFromList pkgdef.depends or [ ] ++ collectAllValuesFromList pkgdef.depopts or [ ]
             )
           )
         );
@@ -277,10 +277,14 @@ originalPkgdef: resolveEnv: {
             fake-list) opamFakeList;;
             var) evalOpamVar "$2";;
             switch)
-              case "$3" in
-                show) echo "default";;
-                *) bailArgs;;
-              esac;;
+              if [ "''${2-}" = "list" ]; then
+                echo "default"
+              else
+                case "''${3-}" in
+                  show) echo "default";;
+                  *) bailArgs;;
+                esac
+              fi;;
             exec)
               shift
               if [[ "x$1" == "x--" ]]; then
@@ -339,6 +343,8 @@ originalPkgdef: resolveEnv: {
       {
         pname = traceAllMessages name;
         version = replaceStrings [ "~" ] [ "_" ] version;
+
+        OPAMSWITCH = "default";
 
         OPAM_PACKAGE_NAME = name;
         OPAM_PACKAGE_VERSION = version;
